@@ -194,6 +194,8 @@ ggsave(filename = 'manuscript/Figures/figure_3/fig3_n.pdf', plot=fig3_metabolite
 ggsave(filename = 'manuscript/Figures/figure_3/fig3_n.png', plot=fig3_metabolites, width = 300, height = 110, units = "mm", dpi = 350)
 
 
+### select the top 20 from last group of NF1 >>> group 11
+## sig in both MEKi-Nf1 groups and not in the others
 ### paired comparisons
 for(i in c(3, 4, 5, 6, 8, 9, 10, 11)){
   temp_df = eval(parse(text = paste0('metabolites_score_data_G', i)))

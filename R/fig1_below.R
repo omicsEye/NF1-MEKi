@@ -7,11 +7,12 @@ source('~/Documents/omicsEye/omicsArt/R/utils.R')
 #setting the working directory
 # setwd("~/Box/NF1_MEKi/")
 setwd("~/Library/CloudStorage/Box-Box/NF1_MEKi")
+
 number_of_sig_to_keep <- 35
 sig_threshold <- 0.1
 
-g15_13 <- read.delim(
-  "analysis/Tweedieverse_MOUSE_CDT_G15_G13/all_results.tsv",
+g13_12 <- read.delim(
+  "analysis/Tweedieverse_MOUSE_HD4_G13_G12/all_results.tsv",
   sep = '\t',
   header = T,
   fill = F,
@@ -19,8 +20,8 @@ g15_13 <- read.delim(
   check.names = F
 )
 
-g14_12 <- read.delim(
-  "analysis/Tweedieverse_MOUSE_CDT_G14_G12/all_results.tsv",
+g15_14 <- read.delim(
+  "analysis/Tweedieverse_MOUSE_HD4_G15_G14/all_results.tsv",
   sep = '\t',
   header = T,
   fill = F,
@@ -28,31 +29,32 @@ g14_12 <- read.delim(
   check.names = F
 )
 
-rownames(g15_13) <- g15_13$feature
+rownames(g13_12) <- g13_12$feature
 
 # select lowest qvalues
-g15_13 = g15_13 %>% 
+g13_12 = g13_12 %>% 
+  filter(!feature %in% c('inosine')) %>%
   top_n(wt = (-qval), 15) %>%
   arrange((abs(coef))) %>% 
   mutate(significant = ifelse(qval<sig_threshold, 'Significant','Insignificant'),
-         gr = 'MEKi')
-g14 = g14_12 %>% 
-  filter(feature %in% g15_13$feature) %>% 
+         gr = '2 hours')
+g14 = g15_14 %>% 
+  filter(feature %in% g13_12$feature) %>% 
   mutate(significant = ifelse(qval<sig_threshold, 'Significant','Insignificant'),
-         gr = 'Vehicle') 
+         gr = '12 hours') 
 
-df = g15_13 %>% bind_rows(g14)
-df$feature = factor(df$feature, levels = g15_13$feature)
+df = g13_12 %>% bind_rows(g14)
+df$feature = factor(df$feature, levels = g13_12$feature)
 
 
 plot_1_below = ggplot(df,
                       aes(x = coef, y = feature,
-                          color = significant, 
-                          shape = gr))+
+                          color = factor(significant), 
+                          shape = factor(gr))) +
   geom_segment(aes(x=0, xend=coef,
                    y=feature, yend=feature),
                color="grey", size = 0.2) +
-  scale_shape_manual(values=c(1,2))+
+  scale_shape_manual(values=c(0, 6))+
   geom_point(aes(size = -log(qval)))+
   geom_vline(xintercept = 0, 
              color = "gray", size=0.3)+
@@ -68,7 +70,7 @@ plot_1_below = ggplot(df,
                               title = 'Statistical Significance',
                               override.aes = list(size = 6)),
          shape = guide_legend(nrow= 1, title.position = 'top',
-                              title = 'Treatment',
+                              title = 'Time point',
                               override.aes = list(size = 6))
   )+
   theme(legend.title = element_text(size = 8),
@@ -82,17 +84,19 @@ plot_1_below = ggplot(df,
   )
 plot_1_below
 
-plots_tw = readRDS('analysis/Tweedieverse_MOUSE_CDT_G15_G13/figures/Group_gg_associations.RDS')
+# plots_tw = readRDS('analysis/Tweedieverse_MOUSE_HD4_G13_G12/figures/Group_gg_associations.RDS')
+plots_tw = readRDS('analysis/Tweedieverse_MOUSE_HD4_G13_G12/figures/Treatment_gg_associations.RDS')
 legend <- get_legend(plot_1_below)
 
+i = 2
 fig1_below = ggdraw() +
   draw_plot(plot_1_below+theme(legend.position='none'),
             x = -0.02, y = 0.1, width = 0.6, height = .9)+
   draw_plot( legend,
              x = 0.1, y = 0, width = .5, height = .1)+
-  draw_plot(plots_tw[[1]]+
+  draw_plot(plots_tw[[i]]+
                          scale_fill_manual(values = c('#00e1d9', '#5e001f'))+
-                         scale_x_discrete(labels=c("G13 (n=11)", "G15 (n=7)"))+
+                         scale_x_discrete(labels=c("G12 (n=12)", "G13 (n=11)"))+
                          theme(
                            axis.title.x = element_text(size = 7),
                            axis.text.x = element_text(size = 7),
@@ -100,9 +104,9 @@ fig1_below = ggdraw() +
                            axis.text.y = element_text(size = 6)),
             x = 0.6, y = 0.5, width = 0.2, height = .4
   )+
-  draw_plot(plots_tw[[2]]+
+  draw_plot(plots_tw[[i+1]]+
               scale_fill_manual(values = c('#00e1d9', '#5e001f'))+
-              scale_x_discrete(labels=c("G13 (n=11)", "G15 (n=7)"))+
+              scale_x_discrete(labels=c("G12 (n=12)", "G13 (n=11)"))+
               theme(
                 axis.title.x = element_text(size = 7),
                 axis.text.x = element_text(size = 7),
@@ -110,9 +114,9 @@ fig1_below = ggdraw() +
                 axis.text.y = element_text(size = 6)),
             x = 0.8, y = 0.5, width = 0.2, height = .4
   )+
-  draw_plot(plots_tw[[3]]+
+  draw_plot(plots_tw[[i+2]]+
               scale_fill_manual(values = c('#00e1d9', '#5e001f'))+
-              scale_x_discrete(labels=c("G13 (n=11)", "G15 (n=7)"))+
+              scale_x_discrete(labels=c("G12 (n=12)", "G13 (n=11)"))+
               theme(
                 axis.title.x = element_text(size = 7),
                 axis.text.x = element_text(size = 7),
@@ -120,9 +124,9 @@ fig1_below = ggdraw() +
                 axis.text.y = element_text(size = 6)),
             x = 0.6, y = 0.1, width = 0.2, height = .4
   )+
-  draw_plot(plots_tw[[4]]+
+  draw_plot(plots_tw[[i+3]]+
               scale_fill_manual(values = c('#00e1d9', '#5e001f'))+
-              scale_x_discrete(labels=c("G13 (n=11)", "G15 (n=7)"))+
+              scale_x_discrete(labels=c("G12 (n=12)", "G13 (n=11)"))+
               theme(
                 axis.title.x = element_text(size = 7),
                 axis.text.x = element_text(size = 7),

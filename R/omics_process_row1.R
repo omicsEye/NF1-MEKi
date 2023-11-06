@@ -146,6 +146,8 @@ metadata$TREATMENT <-  as.character(metadata$TREATMENT)
 pcoa_plots <- ordplots(data, metadata, output = 'analysis/', outputname = 'pcoa_MOUSE HD4', method = 'pcoa')
 tsne_plots <- ordplots(data, metadata, output = 'analysis/', outputname = 'tsne_MOUSE Hd4', method = 'tsne')
 #metadata_2 <- metadata[metadata$`BOX NUMBER` == 'Box2',]
+
+
 metadata_2 <- metadata[metadata$`GROUP NUMBER` %in% c("2 hours after Vehicle", "2 hours after MEKi"),"GROUP NUMBER", drop = F]
 colnames(metadata_2) <- "Treatment"
 #metadata_2[metadata_2==12] <- "1_2 hours after Vehicle"
@@ -176,23 +178,25 @@ colnames(metadata_2) <- "Treatment"
 
 Tweedieverse::Tweedieverse(data,
                            metadata_2,
-                           'analysis/Tweedieverse_MOUSE_CDT_G15_G14',
+                           'analysis/Tweedieverse_MOUSE_HD4_G15_G14',
                            max_significance = 0.1,
                            plot_heatmap = T,
                            plot_scatter = T,
                            standardize = F
 )
-Maaslin2(data,
-         metadata_2,
-         'analysis/Maaslin2_MOUSE_CDT_G15_G14',
-         min_abundance = 0,
-         min_prevalence = 0,
-         max_significance = 0.1,
-         #analysis_method = 'CPLM',
-         #random_effects = c("GROUP NUMBER"),
-         standardize = FALSE,
-         #transform = 'LOG',
-         normalization = 'NONE')
+# Maaslin2(data,
+#          metadata_2,
+#          'analysis/Maaslin2_MOUSE_CDT_G15_G14',
+#          min_abundance = 0,
+#          min_prevalence = 0,
+#          max_significance = 0.1,
+#          #analysis_method = 'CPLM',
+#          #random_effects = c("GROUP NUMBER"),
+#          standardize = FALSE,
+#          #transform = 'LOG',
+#          normalization = 'NONE')
+
+
 metadata_2 <- metadata[metadata$`GROUP NUMBER` %in% c("12 hours after MEKi", "2 hours after MEKi"), c( "GROUP NUMBER"), drop = F]
 colnames(metadata_2) <- "Treatment"
 
