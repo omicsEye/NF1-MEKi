@@ -196,6 +196,34 @@ ggsave(filename = 'manuscript/Figures/figure_3/fig3_n.png', plot=fig3_metabolite
 
 ### select the top 20 from last group of NF1 >>> group 11
 ## sig in both MEKi-Nf1 groups and not in the others
+
+
+###
+for(i in c(11, 3, 4, 5, 6, 8, 9, 10)){
+  temp_df = eval(parse(text = paste0('metabolites_score_data_G', i)))
+  temp_df = temp_df %>%
+    filter(feature !="dimethyl sulfone") %>% 
+    mutate(significant = ifelse(qval<sig_threshold,
+                                'Significant','In-significant'),
+           gr = paste0('G',i)
+    )
+  if(i == 11){
+    df_test = temp_df %>% 
+      filter(significant=='Significant')
+    features = df_test$feature
+    tmp = df_test$feature
+  }else{
+    temp_df = temp_df %>% 
+      filter(feature %in% features) %>% 
+      filter(significant=='In-significant')
+    print(paste(i, nrow(temp_df)))
+    tmp = intersect(temp_df$feature, tmp)
+    df_test = df_test %>% 
+      bind_rows(temp_df)
+  }
+}
+
+###
 ### paired comparisons
 for(i in c(3, 4, 5, 6, 8, 9, 10, 11)){
   temp_df = eval(parse(text = paste0('metabolites_score_data_G', i)))
@@ -246,7 +274,7 @@ for(i in c(3, 4, 5, 6, 8, 9, 10, 11)){
     df_main = temp_df %>% 
       filter(feature %in% tmp) %>%
       mutate(significant = ifelse(qval<sig_threshold,
-                                  'Significant','In-significant'),
+                                  'Significant','Insignificant'),
              gr = paste0('G',i),
              # comparison = ifelse(i %in% c(3, 4), 'G3 and G4',
              #                     ifelse(i %in% c(8, 9), 'G8 and G9',
@@ -293,8 +321,13 @@ fact_levels = fact_levels[fact_levels %in% tmp]
 
 change_name = "3-carboxy-4-methyl-5-pentyl-2-furanpropionate (3-CMPFP)"
 fact_levels[fact_levels==change_name] = "3-CMPFP"
-
 df_main$feature[df_main$feature == change_name] = "3-CMPFP"
+
+change_name = "branched-chain, straight-chain, or cyclopropyl 10:1 fatty acid (1)*"
+fact_levels[fact_levels==change_name] = "BCSC-C10:1 FA(1)*"
+df_main$feature[df_main$feature == change_name] = "BCSC-C10:1 FA(1)*"
+
+
 df_main$feature = factor(df_main$feature, levels = fact_levels)
 df_main$gr = factor(df_main$gr, 
                     levels = c('G3', 'G4', 'G5',
@@ -338,9 +371,9 @@ fig3_4plots = ggplot(df_main,
 
 fig3_4plots
 #save files to folder
-ggsave(filename = 'manuscript/Figures/figure_3/fig3_4plots.pdf', 
+ggsave(filename = 'manuscript/Figures/figure_3/fig3_4plots_nf1_sig.pdf', 
        plot=fig3_4plots, width = 300, height = 115, units = "mm", dpi = 350)
-ggsave(filename = 'manuscript/Figures/figure_3/fig3_4plots.png', 
+ggsave(filename = 'manuscript/Figures/figure_3/fig3_4plots_nf1_sig.png', 
        plot=fig3_4plots, width = 300, height = 115, units = "mm", dpi = 350)
 
 
@@ -366,11 +399,26 @@ saveRDS(new_list, 'analysis/Tweedieverse_MOUSE_HD4_G11_G9_G10_G8_G7_make_names/f
 
 metabolite_list = c('methionine.sulfone', 'picolinate',
                     'galactonate', 'hypoxanthine')
+metabolite_list = names(new_list)
 
 # The palette with grey:
 cbPalette <- c("#E69F00", "#56B4E9", "#009E73",
                         "#F0E442", "#0072B2", 
                         "#D55E00", "#CC79A7", "#999999")
+
+# for (name in names(new_list)) {
+#   new_list[[name]]$data$x <- factor(new_list[[name]]$data$x, 
+#                                     levels = c("1_Baseline_of_HGFAP (n=6)",
+#                                                "2_3 weeks of Vehicle (n=6)",
+#                                                "3_4 - 6 weeks of Vehicle (n=6)",
+#                                                "4_3 weeks of MEKi (n=5)",
+#                                                "5_4 - 6 weeks of MEKi (n=7)"
+#                                     ))
+# }
+
+
+#c("G7 (n=6)", "G11 (n=7)","G9 (n=5)","G8 (n=6)","G10 (n=6)")
+
 
 library(cowplot)                       
 
@@ -382,8 +430,8 @@ for(i in 1:4){
     draw_plot(new_list[[metabolite_list[i]]]+
     scale_fill_manual(values = cbPalette[1:5])+
     scale_x_discrete(labels=c("G7 (n=6)", "G11 (n=7)",
-                              "G9 (n=5)","G8 (n=6)",
-                              "G10 (n=6)"))+
+                               "G9 (n=5)","G8 (n=6)",
+                               "G10 (n=6)"))+
     theme(
       axis.title.x = element_text(size = 7),
       axis.text.x = element_text(size = 7),
@@ -399,8 +447,8 @@ fig3_comb = fig3_comb+
                 y = c(1,.33, .33, .33, .33))
 
 #save files to folder
-ggsave(filename = 'manuscript/Figures/figure_3/fig3_comb.pdf', 
+ggsave(filename = 'manuscript/Figures/figure_3/fig3_comb_sig.pdf', 
        plot=fig3_comb, width = 7.2, height = 6, dpi = 300)
-ggsave(filename = 'manuscript/Figures/figure_3/fig3_comb.png', 
+ggsave(filename = 'manuscript/Figures/figure_3/fig3_comb_sig.png', 
        plot=fig3_comb, width = 7.2, height = 6,dpi = 300)
 
