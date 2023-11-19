@@ -199,6 +199,30 @@ ggsave(filename = 'manuscript/Figures/figure_3/fig3_n.png', plot=fig3_metabolite
 
 
 ###
+for(i in c(9, 3, 4, 5, 6, 8, 11, 10)){
+  temp_df = eval(parse(text = paste0('metabolites_score_data_G', i)))
+  temp_df = temp_df %>%
+    filter(feature !="dimethyl sulfone") %>% 
+    mutate(significant = ifelse(qval<sig_threshold,
+                                'Significant','In-significant'),
+           gr = paste0('G',i)
+    )
+  if(i == 9){
+    df_test = temp_df %>% 
+      filter(significant=='Significant')
+    features = df_test$feature
+    sig_only_g9 = df_test$feature
+  }else{
+    temp_df = temp_df %>% 
+      filter(feature %in% features) %>% 
+      filter(significant=='In-significant')
+    #print(paste(i, nrow(temp_df)))
+    sig_only_g9 = intersect(temp_df$feature, sig_only_g9)
+    df_test = df_test %>% 
+      bind_rows(temp_df)
+  }
+}
+
 for(i in c(11, 3, 4, 5, 6, 8, 9, 10)){
   temp_df = eval(parse(text = paste0('metabolites_score_data_G', i)))
   temp_df = temp_df %>%
@@ -211,62 +235,67 @@ for(i in c(11, 3, 4, 5, 6, 8, 9, 10)){
     df_test = temp_df %>% 
       filter(significant=='Significant')
     features = df_test$feature
-    tmp = df_test$feature
+    sig_only_g11 = df_test$feature
   }else{
     temp_df = temp_df %>% 
       filter(feature %in% features) %>% 
       filter(significant=='In-significant')
-    print(paste(i, nrow(temp_df)))
-    tmp = intersect(temp_df$feature, tmp)
+    #print(paste(i, nrow(temp_df)))
+    sig_only_g11 = intersect(temp_df$feature, sig_only_g11)
     df_test = df_test %>% 
       bind_rows(temp_df)
   }
 }
-
+metabolites_score_data_G11$feature[order(abs(metabolites_score_data_G11$coef),
+                                         decreasing = T)]
+sig_only_g11 = sig_only_g11[order(abs(metabolites_score_data_G11[sig_only_g11,]$coef))]
+sig_only_g9 = sig_only_g9[order(abs(metabolites_score_data_G9[sig_only_g9,]$coef))]
+tmp = c(sig_only_g11, sig_only_g9)
 ###
 ### paired comparisons
-for(i in c(3, 4, 5, 6, 8, 9, 10, 11)){
-  temp_df = eval(parse(text = paste0('metabolites_score_data_G', i)))
-  temp_df = temp_df %>%
-    filter(feature !="dimethyl sulfone") 
-    
-  if(i == 3){
-    tmp1 = temp_df[order(abs(temp_df$coef), decreasing = TRUE), 'feature'][1:5]
-    tmp2 = temp_df[temp_df$qval<sig_threshold, 'feature']
-    if(!is.null(nrow(tmp2))){
-      if(nrow(tmp2)<10){
-        tmp = tmp2
-      }else{
-        tmp = tmp2[1:10]
-      }
-    }else{
-      tmp = tmp1
-    }
-    
-  }else{
-    tmp1 = temp_df[order(abs(temp_df$coef), decreasing = TRUE), 'feature'][1:5]
-    tmp2 = temp_df[temp_df$qval<sig_threshold, 'feature']
-    
-    if(!is.null(nrow(tmp2))){
-      if(nrow(tmp2)<10){
-        tmp = union(tmp, tmp2)
-      }else{
-        tmp = union(tmp, tmp2[1:10])
-      }
-    }else{
-      tmp = union(tmp, tmp1)
-    }
-  }
-}
-must_add_metabolites = c('methionine sulfone',
-                         'gamma-glutamyl-epsilon-lysine',
-                         'galactonate',
-                         'picolinate')
-for(metabolite in must_add_metabolites){
-  if(!metabolite %in% tmp){
-    tmp = c(tmp, metabolite)
-  }
-}
+# for(i in c(3, 4, 5, 6, 8, 9, 10, 11)){
+#   temp_df = eval(parse(text = paste0('metabolites_score_data_G', i)))
+#   temp_df = temp_df %>%
+#     filter(feature !="dimethyl sulfone") 
+#     
+#   if(i == 3){
+#     tmp1 = temp_df[order(abs(temp_df$coef), decreasing = TRUE), 'feature'][1:5]
+#     tmp2 = temp_df[temp_df$qval<sig_threshold, 'feature']
+#     if(!is.null(nrow(tmp2))){
+#       if(nrow(tmp2)<10){
+#         tmp = tmp2
+#       }else{
+#         tmp = tmp2[1:10]
+#       }
+#     }else{
+#       tmp = tmp1
+#     }
+#     
+#   }else{
+#     tmp1 = temp_df[order(abs(temp_df$coef), decreasing = TRUE), 'feature'][1:5]
+#     tmp2 = temp_df[temp_df$qval<sig_threshold, 'feature']
+#     
+#     if(!is.null(nrow(tmp2))){
+#       if(nrow(tmp2)<10){
+#         tmp = union(tmp, tmp2)
+#       }else{
+#         tmp = union(tmp, tmp2[1:10])
+#       }
+#     }else{
+#       tmp = union(tmp, tmp1)
+#     }
+#   }
+# }
+# must_add_metabolites = c('methionine sulfone',
+#                          'gamma-glutamyl-epsilon-lysine',
+#                          'galactonate',
+#                          'picolinate')
+# for(metabolite in must_add_metabolites){
+#   if(!metabolite %in% tmp){
+#     tmp = c(tmp, metabolite)
+#   }
+# }
+
 
 for(i in c(3, 4, 5, 6, 8, 9, 10, 11)){
   temp_df = eval(parse(text = paste0('metabolites_score_data_G', i)))
@@ -315,10 +344,10 @@ df_main$treatment = ifelse(df_main$gr %in% c('G4','G9', 'G6', 'G11'),
                        'MEKi',
                        'Vehicle')
 # confirm the order of metabolites based on G3
-fact_levels = metabolites_score_data_G3$feature[order(abs(metabolites_score_data_G3$coef),
-                                                      decreasing = T)]
-fact_levels = fact_levels[fact_levels %in% tmp]
-
+# fact_levels = metabolites_score_data_G11$feature[order(abs(metabolites_score_data_G11$coef),
+#                                                       decreasing = T)]
+# fact_levels = fact_levels[fact_levels %in% tmp]
+fact_levels = tmp
 change_name = "3-carboxy-4-methyl-5-pentyl-2-furanpropionate (3-CMPFP)"
 fact_levels[fact_levels==change_name] = "3-CMPFP"
 df_main$feature[df_main$feature == change_name] = "3-CMPFP"
@@ -400,7 +429,7 @@ saveRDS(new_list, 'analysis/Tweedieverse_MOUSE_HD4_G11_G9_G10_G8_G7_make_names/f
 metabolite_list = c('methionine.sulfone', 'picolinate',
                     'galactonate', 'hypoxanthine')
 metabolite_list = names(new_list)
-
+metabolite_list = names(new_list)[c(4, 13, 5, 3)]
 # The palette with grey:
 cbPalette <- c("#E69F00", "#56B4E9", "#009E73",
                         "#F0E442", "#0072B2", 
